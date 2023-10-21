@@ -49,11 +49,11 @@ jobs:
           aws-region: ap-northeast-2
 
       - name: upload to S3
-        run: aws s3 cp --region ap-northeast-2 ./hous.zip s3://fmd-back-build/deploy/
+        run: aws s3 cp --region ap-northeast-2 ./hous.zip s3://fmd-build/deploy/
 
       - name: deploy with AWS codeDeploy
         run: aws deploy create-deployment
-          --application-name fmdback-codedeploy
+          --application-name fmd-codedeploy
           --deployment-config-name CodeDeployDefault.OneAtATime
           --deployment-group-name fmd-group
-          --s3-location bucket=fmd-back-build,bundleType=zip,key=deploy/hous.zip
+          --s3-location bucket=fmd-build,bundleType=zip,key=deploy/hous.zip
