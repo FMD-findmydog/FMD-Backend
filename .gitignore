@@ -1,0 +1,15 @@
+/node_modules
+
+#db관련
+/config
+/migrations
+/models
+/seeders
+
+#api 테스트 파일
+test.http
+
+#prettier
+.prettierrc
+
+
