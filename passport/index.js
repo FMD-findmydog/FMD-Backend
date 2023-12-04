@@ -1,5 +1,6 @@
 const passport = require('passport')
 const kakao = require('./kakaoStrategy')
+const localstrategy = require('./localStrategy')
 const db = require('../models/index')
 const { User } = db
 
@@ -14,4 +15,5 @@ module.exports = () => {
       .catch(err => done(err))
   })
   kakao()
+  localstrategy()
 }

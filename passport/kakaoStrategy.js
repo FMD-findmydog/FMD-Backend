@@ -1,5 +1,7 @@
 const passport = require('passport')
 const db = require('../models/index')
+const KakaoStrategy = require('passport-kakao').Strategy
+require('dotenv').config();
 const { User } = db
 
 module.exports = () => {
