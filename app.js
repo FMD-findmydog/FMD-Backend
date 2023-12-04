@@ -4,6 +4,8 @@ const dbconfig = require('./config/database.js')
 const connection = mysql.createConnection(dbconfig)
 const app = express()
 const port = 3000
+const passport = require('passport');
+const passportConfig = require('./passport');
 
 const userRouter = require('./routes/user')
 const authRouter = require('./routes/auth.js')
@@ -13,6 +15,10 @@ app.use(express.urlencoded({ extended: false }))
 
 app.use('/user', userRouter) // 로컬 로그인 요청
 app.use('/auth', authRouter) //kakao 로그인 요청
+
+//passport 관련 설정 등록
+app.use(passport.initialize())
+passportConfig()
 
 //token테스트용
 const tokenTest = require('./routes/token.js')

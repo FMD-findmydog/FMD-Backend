@@ -1,5 +1,7 @@
 const userService = require('../service/user-service')
 const bcryptService = require('../service/bcrypt-service')
+const passport = require('passport')
+const jwt = require('jsonwebtoken')
 
 exports.insertUser = async(req, res, next) => {
     console.log(req.body)
@@ -28,7 +30,35 @@ exports.insertUser = async(req, res, next) => {
     }
 }
 
+exports.isExistEmail = async(req, res, next) => {
+    let {email} = req.params;
+    try{
+        let emailExist = await userService.isExist(email, "email");
+        if(emailExist) {
+            return res.status(200).json({message:"성공"})
+        }
+        else{
+            return res.status(400).json({message:"이미 사용중인 이메일입니다"})
+        }
+    } catch(err) {
+        return res.status(500).json(err)
+    }
+}
 
+exports.isExistNickname = async(req, res, next) => {
+    let {nickname} = req.params;
+    try{
+        let nicknameExist = await userService.isExist(nickname, "nickname")
+        if(nicknameExist) {
+            return res.status(200).json({message:"성공"})
+        }
+        else{
+            return res.status(400).json({message:"이미 사용중인 닉네임입니다"})
+        }
+    } catch(err) {
+        return res.status(500).json(err)
+    }
+}
 
 const pool = require('../database/pool')
 /**
@@ -38,20 +68,60 @@ const pool = require('../database/pool')
  * 여기서 쿼리문으로 email으로 검색하고 email, password를 받아서 password를 비교하면 됩니다!
  * 만약에 일치한다면 decrypt에서는 true, 아니면 false를 리턴해요
  */
-exports.login = async(req, res) => {
-    console.log(req.body)
-    let {email, password} = req.body;
-
+exports.login = async(req, res, next) => {
+    // console.log(req.body)
+    // let {email, password} = req.body;
     try{
-        let result = await pool.query(`select email, password from user where email="${email}"`);
-        console.log(result[0][0])
-        let match = await bcryptService.decrypt(password, result[0][0].password)
-        if(match){
-            return res.status(200).json({message:"로그인 성공"})
-        }else{
-            return res.status(400).json({message:"아이디 또는 비밀번호를 잘못 입력"})
-        }
-    } catch(err){
-        return res.status(500).json(err)
+        passport.authenticate('local', (passportError, user, info) => {
+            if(passportError || !user){
+                res.json(404, {
+                    isSuccess: false,
+                    code: 1000,
+                    message: info.reason,
+                    result: false,
+                })
+                return; 
+            }
+        
+            req.login(user, {session:false}, (loginError) => {
+                if(loginError){
+                    res.send(loginError);
+                    return;
+                }
+                const token = jwt.sign(
+                    {
+                        type: 'JWT',
+                        nickname: user.nickname
+                    },
+                    process.env.JWT_SECRET,
+                    {
+                        expiresIn: '1m', // 만료시간 15분
+                        issuer: '토큰발급자',
+                    }
+                );
+                // console.log(user.email, user.password)
+                res.json(200, {
+                    isSuccess: true,
+                    code: 1000,
+                    message: '성공',
+                    result: {
+                      userIdx: user.userIdx,
+                      token: token,
+                    },
+                  });
+            });
+        })(req, res);
+    } catch(error){
+        console.error(error);
+        next(error);
     }
+}
+
+exports.auth = async(req, res, next) => {
+    try {
+	    res.json({ result: true });
+	} catch (error) {
+	    console.error(error);
+	    next(error);
+	}
 }

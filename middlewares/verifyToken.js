@@ -1,7 +1,8 @@
+const jwt = require('jsonwebtoken')
+
 exports.verifyToken = (req, res, next) => {
   try {
     req.decoded = jwt.verify(req.headers.authorization, process.env.JWT_SECRET)
-    console.log(req.decoded)
     return next()
   } catch (error) {
     if (error.name === 'TokenExpireError') {
